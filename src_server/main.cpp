@@ -1,14 +1,45 @@
+#include <qdatabase.h>
+
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <iostream>
 #include <unistd.h>
+
 #include <QByteArray>
 #include <QDebug>
 #include <QImage>
 #include <QDir>
 
 using namespace std;
+
+
+QString genPath(QString author_id){
+    return QDir::homePath() + "/server/" + author_id + "/";
+}
+QString genName(){
+    char s[10 + 26 + 26];
+    memset(s, 0, strlen(s));
+    for (int i = 48; i <= 57; i++)
+        s[i - 48] = i;
+    for (int i = 65; i <= 90; i++)
+        s[10 + i - 65] = i;
+    for (int i = 97; i <= 122; i++)
+        s[10 + 26 + i - 97] = i;
+    QString res;
+    for (int i = 0; i < 25; i++){
+        res.append(s[qrand() % 61]);
+    }
+    return res;
+}
+void insertPhoto(QByteArray data, QString author_id){
+    QImage img;
+    img.loadFromData(data);
+    QString path = genPath(author_id) + "/" + genName();
+    if (img.save(path, "PNG"))
+        qDebug() << "true";
+    db->addIntoTable("INSERT INTO `photo`.`photos` (`photo_id`, `author_id`, `like_counter`, `link`, `categories`, `text`, `complaint_counter`, `uploadDate`, `title`) VALUES ('0', " + author_id  + ", '0', '" + path + "', '', '', '0', current_time(), '')");
+}
 
 int main(){
     qDebug() << "server";
